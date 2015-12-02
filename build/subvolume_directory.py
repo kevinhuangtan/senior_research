@@ -52,7 +52,7 @@ def create(subvolume):
             for line in f:
                 if(line[0] == '#'):
                     tree_id = line[6:].strip('\n')
-                    print '#tree', str(tree_id) + '/' + str(num_trees)
+                    print '#tree', str(n) + '/' + str(num_trees)
                     hf[tree_id] = [subvolume]
                     n += 1
 
