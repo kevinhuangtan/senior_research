@@ -14,6 +14,11 @@ def header_len(fname):
     return
 
 def tree_gen(f):
+    """
+    Generator that yields rows of each tree.
+    
+    """
+    
     line = f.readline()  
     parsed_line = line.strip().split()
     first_row = np.array(tuple(parsed_line), dtype = dt)
