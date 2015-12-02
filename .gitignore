@@ -7,3 +7,5 @@
 *.
 *.pyc
 *trees/
+.gitignore
+trees/
