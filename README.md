@@ -25,4 +25,4 @@ retrieve clumpiness summary statistic for a tree ID <br>
 	>>> import haloprop
 	>>> treeID = '3060299107' #tree ID in tree_0_0_0.dat subvolume
 	>>> print haloprop.clumpiness(treeID)
-	>>> "clumpiness:  0.0974984867952"
+	>>> clumpiness:  0.0974984867952
