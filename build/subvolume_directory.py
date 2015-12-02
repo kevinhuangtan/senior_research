@@ -36,7 +36,7 @@ def create(subvolume):
     >>> with h5py.File('subvolume_directory.hdf5', 'r') as subvolume_directory:
     >>>     subvolume = subvolume_directory[treeID][...][0]
     >>> print subvolume
-    >>> '0_0_0'
+    >>> 0_0_0
     
     """
     subvolume_file = 'tree_ascii_data/tree_' + subvolume + '.dat'
