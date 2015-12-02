@@ -1,0 +1,8 @@
+*/.ipynb_checkpoints/*
+*.dat
+*.txt
+*.DS_Store
+*.data
+*.hdf5
+*.
+*.pyc
