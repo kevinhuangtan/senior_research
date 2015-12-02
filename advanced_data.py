@@ -296,3 +296,5 @@ def is_host_halo(treeID):
             subhaloID = trunk_upid[i]
             break
     print subhaloID
+
+    
