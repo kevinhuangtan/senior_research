@@ -57,6 +57,8 @@ def create(subvolume, haloprop_key):
     subvolume_file = 'tree_ascii_data/tree_'+subvolume+'.dat'
     tree_directory = 'trees/'+subvolume+'/tree_directory.hdf5'
     ouput_binary = 'trees/'+subvolume+'/'+haloprop_key+'.'+str(dt[haloprop_key])+'/'+haloprop_key+'.data'
+    print 'creating haloprop binary at', ouput_binary, 'for haloprop_key:', haloprop_key
+
     haloprop_folder = './trees/'+subvolume+'/'+haloprop_key+'.'+str(dt[haloprop_key])
     if not os.path.exists(haloprop_folder):
         os.makedirs(haloprop_folder)
@@ -70,7 +72,7 @@ def create(subvolume, haloprop_key):
             offset_sum = 0
             binaryarr = []
             while(tree_index < num_trees):
-                print '#tree', tree_index
+                print '#tree', str(tree_index) + '/' + str(num_trees)
                 line = f.readline()  
                 tree_id = line[6:].strip('\n')
                 binaryarr += (list(tree_gen(f, haloprop_key)))

@@ -64,6 +64,8 @@ def create(subvolume):
     subvolume_file = 'tree_ascii_data/tree_'+ subvolume + '.dat' 
     tree_directory_fname = 'trees/' + subvolume + '/tree_directory.hdf5'
 
+    print 'creating tree directory at', tree_directory_fname
+
     h = header_len(subvolume_file)
     with h5py.File(tree_directory_fname,"w") as hf: 
         with open(subvolume_file, 'r') as f:
@@ -76,7 +78,7 @@ def create(subvolume):
             while(tree_index < num_trees):
                 line = f.readline()  
                 tree_id = line[6:].strip('\n')
-                print 'tree id', tree_id
+                print '#tree', str(tree_index) + '/' + str(num_trees)
                 tree = tree_gen(f)
                 tree = np.array(list(tree))
                 len_arr = len(tree)
@@ -91,6 +93,5 @@ def create(subvolume):
                 ])  
                 tree_index += 1
                 offset_sum += len_arr
-                print str(tree_index) + '\n'
     return 
 

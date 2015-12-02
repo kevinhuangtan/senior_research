@@ -8,8 +8,8 @@ Quick dictionary-like access to any tree's halo property data
 
 1) Place subvolume file (e.g. tree_0_0_0.dat) in tree_ascii_data/<br>
 2) Build data for new subvolume<br>
-example: <br>
 
+	>>> #example
 	>>> from build_subvolume import build
 	>>> build("0_0_0")
 
