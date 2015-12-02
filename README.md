@@ -22,6 +22,6 @@ retrieve trunk data for mvir of a given tree: <br>
 retrieve clumpiness summary statistic for a tree ID <br>
 
 	>>> import haloprop
-	>>> treeID = '3060299107
+	>>> treeID = '3060299107'
 	>>> print haloprop.clumpiness(treeID)
 	>>> clumpiness:  0.0974984867952
