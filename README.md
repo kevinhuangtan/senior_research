@@ -11,15 +11,14 @@ Quick dictionary-like access to any tree's halo property data
 example: <br>
 
 	>>> from build_subvolume import build
-	>>> import get_haloprop
 	>>> build("0_0_0")
 
 retrieve trunk data for mvir of a given tree: <br>
 
-	>>> import get_haloprop
+	>>> import haloprop
 	>>> treeID = '3060299107' #tree ID in tree_0_0_0.dat subvolume
-	>>> haloprop = 'mvir'
-	>>> print haloprop.get_trunk_haloprop(treeID, haloprop)
+	>>> haloprop_key = 'mvir'
+	>>> print haloprop.get_trunk_haloprop(treeID, haloprop_key)
 
 retrieve clumpiness summary statistic for a tree ID <br>
 
