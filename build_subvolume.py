@@ -1,12 +1,6 @@
-import subvolume_directory
-import tree_directory
-import haloprop_binary
-import numpy as np
-import h5py
-import advanced_data
-from dtype import dt
+from build import subvolume_directory, tree_directory, haloprop_binary
 
-def build_subvolume(subvolume):
+def build(subvolume):
     """
     Converts subvolume ascii file into accesible data via tree ID.
 
