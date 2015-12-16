@@ -2,7 +2,9 @@ import os
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
-from dtype import dt, dt_offset
+from build import subvolume_directory, tree_directory, haloprop_binary
+from build import dtype2 as dtype
+
 
 
 # Tree Directory Metadata
@@ -19,29 +21,29 @@ def get_subvolume(treeID):
     Parameters
     ----------
     treeID : string
-    
+
     """
 
-    with h5py.File('subvolume_directory.hdf5', "r") as svd:
-        subvolume = svd[str(treeID)][...][0]
+    with h5py.File('subvolume_directory.hdf5', "r") as subvol_direc:
+        subvolume = subvol_direc[str(treeID)][...][0]
     return subvolume
 
-def get_tree_metadata(treeID, subvolume):
+def get_tree_metadata(treeID):
     """
     Retrieve tree's metadata.
 
     Parameters
     ----------
     treeID : string
-    
-    """
 
+    """
+    subvolume = get_subvolume(treeID)
     tree_direc = "trees/"+subvolume+"/tree_directory.hdf5"
     with h5py.File(tree_direc, "r") as td:
-        tree_metadata = td[str(treeID)][...]     
+        tree_metadata = td[str(treeID)][...]
     return tree_metadata
 
-def get_tree_haloprop(treeID, haloprop, subvolume):
+def get_tree_haloprop(treeID, haloprop):
     """
     Retrieve tree's data for given haloprop from memmapped binary file.
 
@@ -57,18 +59,19 @@ def get_tree_haloprop(treeID, haloprop, subvolume):
     -------
     tree_haloprop : np.array
         rows of the tree for a particular haloprop.
-    
+
     """
 
-    dtype = dt[haloprop]
-    tree_metadata = get_tree_metadata(treeID, subvolume)
+    dt = dtype.dt[haloprop]
+    subvolume = get_subvolume(treeID)
+    tree_metadata = get_tree_metadata(treeID)
     tree_length = tree_metadata[LENGTH]
-    offset = tree_metadata[OFFSET]   
+    offset = tree_metadata[OFFSET]
     tree_haloprop = np.memmap(
-        filename= 'trees/'+subvolume+'/'+haloprop+'.'+str(dtype)+'/'+haloprop+'.data', 
-        dtype = dtype, mode='r', 
-        shape=(1, tree_length), 
-        offset = offset * dt_offset[haloprop]
+        filename= 'trees/'+subvolume+'/'+haloprop+'.'+str(dt)+'/'+haloprop+'.data',
+        dtype = dt, mode='r',
+        shape=(1, tree_length),
+        offset = offset * dtype.dt_offset[haloprop]
     )
     return np.array(tree_haloprop[0])
 
@@ -89,11 +92,11 @@ def get_trunk_haloprop(treeID, haloprop):
     """
 
     subvolume = get_subvolume(treeID)
-    tree_haloprop = get_tree_haloprop(treeID, haloprop, subvolume)
-    tree_depthsort = get_tree_haloprop(treeID, 'haloid_depth_first', subvolume)
+    tree_haloprop = get_tree_haloprop(treeID, haloprop)
+    tree_depthsort = get_tree_haloprop(treeID, 'haloid_depth_first')
     depthsort_mask = np.argsort(tree_depthsort)
-    
-    tree_metadata = get_tree_metadata(treeID, subvolume)
+
+    tree_metadata = get_tree_metadata(treeID)
     last_mainleaf = tree_metadata[HALOID_LAST_MAINLEAF_DEPTHFIRST]
     root = tree_metadata[HALOID_DEPTH_FIRST]
     trunk_len = last_mainleaf - root
@@ -117,12 +120,12 @@ def clumpy_accretion(treeID):
     """
 
     subvolume = get_subvolume(treeID)
-    tree_metadata = get_tree_metadata(treeID, subvolume)
-    tree_mvir = get_tree_haloprop(treeID, 'mvir', subvolume)
-    tree_depthsort = get_tree_haloprop(treeID, 'haloid_depth_first', subvolume)
+    tree_metadata = get_tree_metadata(treeID)
+    tree_mvir = get_tree_haloprop(treeID, 'mvir')
+    tree_depthsort = get_tree_haloprop(treeID, 'haloid_depth_first')
     depthsort_mask = np.argsort(tree_depthsort)
     tree_mvir_sorted = tree_mvir[depthsort_mask] #sort by depthsort ID
-    tree_coprog = get_tree_haloprop(treeID, 'haloid_next_coprog_depthfirst', subvolume)
+    tree_coprog = get_tree_haloprop(treeID, 'haloid_next_coprog_depthfirst')
     tree_coprog_sorted = tree_coprog[depthsort_mask]
 
     trunk_coprog = get_trunk_haloprop(treeID, 'haloid_next_coprog_depthfirst')
@@ -181,23 +184,50 @@ def plot_accretion(treeID):
     smooth_history = smooth_accretion(treeID)
     mass_history = get_trunk_haloprop(treeID, 'mvir')
     mass_history = mass_history[:len(mass_history)-1]
+    clumpy = 0
+    smooth = 0
 
     clumpy_plus_smooth = [0] * len(clumpy_history)
-    for i, val in enumerate(clumpy_history):
+    clumpy_final = [0] * len(clumpy_history)
+    smooth_final = [0] * len(clumpy_history)
+    tree_length = len(clumpy_history)
+    for i in xrange(0, tree_length):
         clumpy_plus_smooth[i] = clumpy_history[i] + smooth_history[i]
+        
+        index = tree_length - i - 1
+        clumpy = clumpy + clumpy_history[index]
+        clumpy_final[index] = clumpy
+        
+        smooth = smooth + smooth_history[index]
+        smooth_final[index] = smooth
 
     x1 = np.linspace(1, 0, len(smooth_history))
     clumpy, = plt.plot(x1, clumpy_history, label='clumpy', lw=2)
     smooth, = plt.plot(x1, smooth_history, label='smooth', lw=2)
     total, = plt.plot(x1, mass_history, label='total mass', lw= 2)
-    clumpy_plus_smooth, = plt.plot(x1, mass_history, label='clumpy + smooth')
-    plt.legend(handles=[clumpy, smooth, total, clumpy_plus_smooth])
-    plt.title('Mass Accretion over Time')
+
+    plt.legend(handles=[clumpy, smooth, total],  loc=2,)
+    title = 'Accretion over Time for Tree ' + str(treeID)
+    plt.title(title)
     plt.show()
+    filename = "tree" + str(treeID)
+    plt.savefig(filename)
+    plt.clf()
+
+
+    clumpy, = plt.plot(x1, clumpy_final, label='clumpy', lw=2)
+    smooth, = plt.plot(x1, smooth_final, label='smooth', lw=2)
+    total, = plt.plot(x1, mass_history, label='total mass', lw= 2)
+    plt.legend(handles=[clumpy, smooth, total],  loc=2,)
+    title = 'Accretion Rate over Time for Tree ' + str(treeID)
+    plt.title(title)
+    plt.show()
+
+
 
 def clumpiness(treeID):
     """
-    Returns clumpy statistic for a given treeID. 
+    Returns clumpy statistic for a given treeID.
 
     clumpiness = (change in mass due to clumpy accretion)/(change in total mass)
 
@@ -223,28 +253,25 @@ def clumpiness(treeID):
 
     trunk_scale = get_trunk_haloprop(treeID, 'scale')
     index = 0
-    for i, s in enumerate(trunk_scale):
-        if(s < .5): #redshift = 1
-            index = i
-            break
+    index = len(trunk_scale) - 2 #
     trunk_mass = get_trunk_haloprop(treeID, 'mvir')
     mass_delta = trunk_mass[0] - trunk_mass[index]
-    # print 'mass delta', mass_delta
+    print 'mass delta', mass_delta
     trunk_clumpy = clumpy_accretion(treeID)
 
     clumpy_delta = 0
-    for i in xrange(0, index+1):
+    for i in xrange(0, index + 1):
         clumpy_delta += trunk_clumpy[i]
 
-    # print 'clumpy delta', clumpy_delta
+    print 'clumpy delta', clumpy_delta
     fraction_clumpy = clumpy_delta/mass_delta
     print 'clumpiness: ', fraction_clumpy
 
     return fraction_clumpy
-
+ 
 def smoothness(treeID):
     """
-    Returns smooth statistic for a given treeID. 
+    Returns smooth statistic for a given treeID.
 
     smothness = (change in mass due to smooth accretion)/(change in total mass)
 
@@ -272,15 +299,10 @@ def smoothness(treeID):
     trunk_smooth = smooth_accretion(treeID)
 
     mass_delta = trunk_mass[0] - trunk_mass[index]
-    # print mass_delta
     smooth_delta = 0
-    # mass_delta_2 = 0
 
     for i in xrange(0, index + 1):
         j = index - i
-        # print trunk_mass[j] - trunk_smooth[j]
-        # print '\n'
-        # mass_delta_2 += trunk_mass[j]
         smooth_delta += trunk_smooth[j]
 
     # print mass_delta - smooth_delta
@@ -289,12 +311,48 @@ def smoothness(treeID):
     print 'fraction smooth', fraction_smooth
     return fraction_smooth
 
+
+
+
 def is_host_halo(treeID):
     trunk_upid = get_trunk_haloprop(treeID, 'upid')
+    print trunk_upid
+    subhaloID = -1
     for i, val in enumerate(trunk_upid):
         if(val != -1):
             subhaloID = trunk_upid[i]
             break
-    print subhaloID
+    if(subhaloID != -1):
+        print subhaloID
 
-    
+
+
+with open("./tree_ascii_data/trees_set.dat", "r") as f:
+    with open("output.txt", "w") as o: 
+        clump = []
+        for line in f:
+            c = line.strip('\n')
+            out = 'tree: '+ c + ' clumpiness: ' + str(clumpiness(c)) +'\n'
+            o.write(out)
+
+
+with open("output.txt", "r") as f:
+    arr = []
+    for line in f:
+        arr.append(float(line))
+    arr_np = np.array(arr)
+
+    # the histogram of the data
+    n, bins, patches = plt.hist(arr_np, 50, normed=1, facecolor='g', alpha=0.75)
+
+
+    plt.xlabel('clumpiness')
+    plt.ylabel('count')
+    plt.title('clumpiness distribution of halos')
+    plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
+    plt.axis([0, 1, 0, 10])
+    plt.grid(True)
+    plt.show()
+
+
+

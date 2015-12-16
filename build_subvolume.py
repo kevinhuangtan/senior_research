@@ -1,5 +1,6 @@
 from build import subvolume_directory, tree_directory, haloprop_binary
 
+
 def build(subvolume):
     """
     Converts subvolume ascii file into accesible data via tree ID.
@@ -30,5 +31,3 @@ def build(subvolume):
         haloprop_binary.create(subvolume, p)
     subvolume_directory.create(subvolume)
 
-
-build('0_0_1')

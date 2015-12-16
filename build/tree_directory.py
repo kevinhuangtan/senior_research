@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
 from dtype import dt
+import os
 
 
 def header_len(fname):
@@ -62,7 +63,12 @@ def create(subvolume):
     
     """
     subvolume_file = 'tree_ascii_data/tree_'+ subvolume + '.dat' 
+    subvolume_folder = './trees/'+subvolume
+    if not os.path.exists(subvolume_folder):
+        os.makedirs(subvolume_folder)
+
     tree_directory_fname = 'trees/' + subvolume + '/tree_directory.hdf5'
+
 
     print 'creating tree directory at', tree_directory_fname
 

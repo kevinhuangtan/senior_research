@@ -40,7 +40,7 @@ def create(subvolume):
     
     """
     subvolume_file = 'tree_ascii_data/tree_' + subvolume + '.dat'
-    subvolume_directory = 'subvolume_directory.hdf5'
+    subvolume_directory = './subvolume_directory.hdf5'
     print 'adding to subvolume directory at', subvolume_directory
     h = header_len(subvolume_file)
     with open(subvolume_file) as f:
@@ -57,5 +57,3 @@ def create(subvolume):
                     n += 1
 
     return 
-
-
