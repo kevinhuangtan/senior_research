@@ -325,34 +325,31 @@ def is_host_halo(treeID):
     if(subhaloID != -1):
         print subhaloID
 
+def clumpy_histogram():
+    with open("./tree_ascii_data/trees_set.dat", "r") as f:
+        with open("output.txt", "w") as o: 
+            clump = []
+            for line in f:
+                c = line.strip('\n')
+                out = 'tree: '+ c + ' clumpiness: ' + str(clumpiness(c)) +'\n'
+                o.write(out)
 
-
-with open("./tree_ascii_data/trees_set.dat", "r") as f:
-    with open("output.txt", "w") as o: 
-        clump = []
+    with open("output.txt", "r") as f:
+        arr = []
         for line in f:
-            c = line.strip('\n')
-            out = 'tree: '+ c + ' clumpiness: ' + str(clumpiness(c)) +'\n'
-            o.write(out)
+            arr.append(float(line))
+        arr_np = np.array(arr)
 
+        # the histogram of the data
+        n, bins, patches = plt.hist(arr_np, 50, normed=1, facecolor='g', alpha=0.75)
 
-with open("output.txt", "r") as f:
-    arr = []
-    for line in f:
-        arr.append(float(line))
-    arr_np = np.array(arr)
-
-    # the histogram of the data
-    n, bins, patches = plt.hist(arr_np, 50, normed=1, facecolor='g', alpha=0.75)
-
-
-    plt.xlabel('clumpiness')
-    plt.ylabel('count')
-    plt.title('clumpiness distribution of halos')
-    plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
-    plt.axis([0, 1, 0, 10])
-    plt.grid(True)
-    plt.show()
+        plt.xlabel('clumpiness')
+        plt.ylabel('count')
+        plt.title('clumpiness distribution of halos')
+        plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
+        plt.axis([0, 1, 0, 10])
+        plt.grid(True)
+        plt.show()
 
 
 
